@@ -1,0 +1,44 @@
+name: Deploy to Hugging Face Space
+
+on:
+  push:
+    branches:
+      - main  # This will trigger the action on every push to the 'main' branch (you can change this if needed)
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2  # Checkout your GitHub repository
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8  # Python version (adjust as necessary)
+
+      - name: Install Hugging Face Hub
+        run: |
+          pip install huggingface_hub
+
+      - name: Deploy to Hugging Face Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}  # Your Hugging Face token stored in GitHub secrets
+        run: |
+          # Clone the Hugging Face Space repository
+          git clone https://huggingface.co/spaces/Lundhubro/whatsapp
+          cd whatsapp
+
+          # Pull the latest updates from the Hugging Face Space
+          git pull
+
+          # Copy all files from the GitHub repository into the Hugging Face Space repository
+          cp -r ../* .
+
+          # Commit and push the changes to Hugging Face
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git commit -m "Automated deployment from GitHub" || echo "No changes to commit"  # Avoid errors if no changes
+          git push https://huggingface.co/spaces/Lundhubro/whatsapp
